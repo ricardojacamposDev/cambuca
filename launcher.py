@@ -93,7 +93,7 @@ def main():
             return 0
         binary = shutil.which('llama-server')
         if args.doctor:
-            campos.display(f'Cambuca 0.3.0\nPython {platform.python_version()}\nllama-server: {binary or "não encontrado"}\nConfiguração: {CONFIG}')
+            campos.display(f'Cambuca 0.3.1\nPython {platform.python_version()}\nllama-server: {binary or "não encontrado"}\nConfiguração: {CONFIG}')
             return 0
         if not binary:
             raise ValueError('Instale primeiro: brew install python llama.cpp')
