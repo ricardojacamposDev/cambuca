@@ -17,7 +17,12 @@ import campos
 CONFIG = Path.home() / '.config' / 'cambuca' / 'config.json'
 
 def validate_model(value):
-    p = Path(value).expanduser().resolve(strict=True)
+    # Normaliza sem resolver links simbólicos: mantém o caminho informado pelo
+    # usuário (importante no macOS, onde /var aponta para /private/var) e ainda
+    # bloqueia travessia por '..'.
+    p = Path(os.path.normpath(Path(value).expanduser()))
+    if not p.is_file():
+        raise ValueError('O arquivo não existe ou não é um arquivo regular.')
     with p.open('rb') as f:
         if f.read(4) != b'GGUF':
             raise ValueError('O arquivo não possui assinatura GGUF.')

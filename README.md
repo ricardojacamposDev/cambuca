@@ -128,7 +128,7 @@ As operações de mover e restaurar fazem cópia verificada antes de remover a o
 
 ## Validação
 
-35 testes automatizados passaram no ambiente Linux: núcleo do agente, inicializador, instalador simulado, Word, movimentação, recusa, conflitos, Lixeira simulada e restauração. Um DOCX de teste criado e editado pelo módulo foi renderizado e inspecionado visualmente.
+36 testes automatizados passaram (Linux e macOS com Python 3.10+): núcleo do agente, inicializador, instalador simulado, Word, movimentação, recusa, conflitos, Lixeira simulada e restauração. Um DOCX de teste criado e editado pelo módulo foi renderizado e inspecionado visualmente.
 
 **Ainda não validado em Mac real:** API nativa de Lixeira, permissões de discos externos, execução GGUF e Metal. Os testes do adaptador macOS verificam o comando e seus argumentos com resposta simulada, não substituem a validação nativa. O instalador de dependências foi testado com instalação simulada; não foi executado no seu Mac.
 
@@ -145,6 +145,8 @@ Para rodar os testes após instalação:
 ```bash
 ~/.local/share/cambuca/venv/bin/python -m unittest discover -s tests -v
 ```
+
+Use sempre o Python 3.10+ do ambiente virtual; o Python do sistema no macOS (3.9) não tem as dependências do projeto.
 
 ## Referências
 

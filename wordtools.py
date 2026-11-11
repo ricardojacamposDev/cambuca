@@ -23,9 +23,14 @@ def load(data):
     if len(data) > 20_000_000:
         raise ValueError('DOCX maior que 20 MB não suportado.')
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        names = archive.namelist()
+        if len(names) > 1000:
+            raise ValueError('DOCX com excesso de partes internas não suportado.')
+        if any('..' in name or name.startswith('/') or name.startswith('\\') for name in names):
+            raise ValueError('DOCX com caminhos internos inseguros não suportado.')
         if sum(x.file_size for x in archive.infolist()) > 80_000_000:
             raise ValueError('DOCX expandido excede 80 MB.')
-        if any('vbaProject' in x for x in archive.namelist()):
+        if any('vbaProject' in x for x in names):
             raise ValueError('Documentos com macros não suportados.')
     return library()(io.BytesIO(data))
 

@@ -35,8 +35,11 @@ function run(argv) {
     return ObjC.unwrap(destination[0].path);
 }'''
     # Caminho transmitido como argumento, jamais interpolado no script.
-    result = subprocess.run(['/usr/bin/osascript','-l','JavaScript','-e',script,str(path)],
-                            capture_output=True, text=True, timeout=60)
+    try:
+        result = subprocess.run(['/usr/bin/osascript','-l','JavaScript','-e',script,str(path)],
+                                capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired as exc:
+        raise ValueError('A Lixeira do macOS demorou demais; confira no Finder.') from exc
     if result.returncode:
         raise ValueError('Falha na Lixeira do macOS: ' + result.stderr[:1000])
     dest = Path(result.stdout.rstrip('\n'))
@@ -96,9 +99,12 @@ class FileTools:
         from campos import display
         action = a['action']
         if action == 'trash_list':
-            with self.db() as db:
+            db = self.db()
+            try:
                 rows = db.execute('SELECT id,original,status FROM items WHERE root=? AND status != ? ORDER BY rowid DESC LIMIT 100',
                                   (str(self.ws.root),'restored')).fetchall()
+            finally:
+                db.close()
             return json.dumps([{'id':r[0],'path':r[1],'status':r[2]} for r in rows],ensure_ascii=False)
         if self.ws.readonly:
             return 'Recusado: modo somente leitura.'
@@ -129,13 +135,21 @@ class FileTools:
             if self.file(a['path']) != src or fingerprint(src) != digest:
                 raise ValueError('Arquivo mudou; operação cancelada.')
             item = uuid.uuid4().hex
-            with self.db() as db:
+            db = self.db()
+            try:
                 db.execute('INSERT INTO items VALUES (?,?,?,?,?,?)',
                            (item,str(self.ws.root),str(src),'',digest,'pending'))
+                db.commit()
+            finally:
+                db.close()
             try:
                 trashed = self.trash_backend(src)
-                with self.db() as db:
+                db = self.db()
+                try:
                     db.execute('UPDATE items SET trashed=?,status=? WHERE id=?',(str(trashed),'trashed',item))
+                    db.commit()
+                finally:
+                    db.close()
                 if src.exists() or fingerprint(trashed) != digest:
                     raise ValueError('Resultado da Lixeira precisa de revisão manual.')
             except Exception as exc:
@@ -144,9 +158,12 @@ class FileTools:
             return f'Enviado à Lixeira. ID de recuperação: {item}. Use /restore {item}.'
         if action == 'restore':
             item = a['id']
-            with self.db() as db:
+            db = self.db()
+            try:
                 row = db.execute('SELECT original,trashed,digest,status FROM items WHERE id=? AND root=?',
                                  (item,str(self.ws.root))).fetchone()
+            finally:
+                db.close()
             if not row or row[3] != 'trashed':
                 raise ValueError('ID não recuperável neste workspace. Consulte /trash e o Finder.')
             dst = self.ws.path(row[0]); src = Path(row[1])
@@ -162,7 +179,11 @@ class FileTools:
             if self.ws.path(row[0]) != dst:
                 raise ValueError('Destino mudou; operação cancelada.')
             move_no_replace(src,dst,row[2])
-            with self.db() as db:
+            db = self.db()
+            try:
                 db.execute('UPDATE items SET status=? WHERE id=?',('restored',item))
+                db.commit()
+            finally:
+                db.close()
             return f'Restaurado: {dst.relative_to(self.ws.root)}'
         raise ValueError('Operação desconhecida.')

@@ -16,9 +16,12 @@ bin_dir = Path.home()/'.local'/'bin'
 destination.mkdir(parents=True, exist_ok=True)
 bin_dir.mkdir(parents=True, exist_ok=True)
 environment = destination/'venv'
+# Reinstalação segura: remove ambiente anterior para evitar falha ao recriar.
+if environment.exists():
+    shutil.rmtree(environment)
 venv.EnvBuilder(with_pip=True).create(environment)
 python = environment/'bin'/'python'
-subprocess.run([str(python), '-m', 'pip', 'install', 'python-docx==1.2.0'], check=True)
+subprocess.run([str(python), '-m', 'pip', 'install', '--disable-pip-version-check', 'python-docx==1.2.0'], check=True)
 for name in ['campos.py', 'launcher.py', 'filetools.py', 'wordtools.py']:
     if (source/name).resolve() != (destination/name).resolve():
         shutil.copy2(source/name, destination/name)

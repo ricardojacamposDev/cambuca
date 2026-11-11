@@ -1,4 +1,6 @@
+import io
 import json
+import zipfile
 from pathlib import Path
 import tempfile
 import unittest
@@ -63,3 +65,17 @@ class WordTests(unittest.TestCase):
     def test_multi_replacement_same_run(self):
         doc=Document();p=doc.add_paragraph('a-a-a');wordtools.replace_runs(p,'a','long')
         self.assertEqual(p.text,'long-long-long')
+
+    def test_unsafe_docx_rejected(self):
+        bad = self.root/'bad.docx'
+        with zipfile.ZipFile(bad, 'w') as z:
+            z.writestr('../evil.xml', '<x/>')
+        with self.assertRaises(ValueError):
+            wordtools.load(bad.read_bytes())
+        # excesso de partes
+        many = self.root/'many.docx'
+        with zipfile.ZipFile(many, 'w') as z:
+            for i in range(1001):
+                z.writestr(f'part{i}.xml', '<x/>')
+        with self.assertRaises(ValueError):
+            wordtools.load(many.read_bytes())
