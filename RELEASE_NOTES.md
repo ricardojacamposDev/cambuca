@@ -23,6 +23,11 @@
 
 # Cambuca 0.3.1 — Notas de release
 
+> **Atualize para a [0.3.2](https://github.com/ricardojacamposDev/cambuca/releases/tag/v0.3.2).** Problemas desta versão corrigidos na 0.3.2:
+> - Um modelo escolhido com caminho relativo deixa de funcionar quando o `cambuca` é aberto em outra pasta.
+> - Uma reinstalação que falha (por exemplo, sem internet) apaga o ambiente virtual que funcionava, e o instalador não é idempotente como descrito abaixo.
+> - Erros do registro SQLite da Lixeira (bloqueado ou corrompido) podem encerrar o chat.
+
 ## Novidades e correções
 
 ### Correções
