@@ -1,3 +1,26 @@
+# Cambuca 0.3.2 — Notas de release
+
+## Correções
+- Modelo: o caminho é gravado como absoluto em `config.json`. Um modelo escolhido com caminho relativo (`cambuca --model m.gguf` ou na primeira configuração) volta a funcionar a partir de qualquer pasta. O caminho também não é mais reduzido como texto em `..`, então abre o mesmo arquivo que o sistema abriria. Regressão introduzida na 0.3.1.
+- Instalador: a reinstalação guarda o ambiente virtual existente até o novo estar completo. Se a criação do ambiente ou a instalação do `python-docx` falhar (por exemplo, sem internet), o ambiente anterior é restaurado e o Cambuca continua funcionando. Na 0.3.1, uma falha apagava o ambiente que funcionava.
+- Lixeira: erros do registro SQLite (bloqueado por outra sessão ou corrompido) aparecem como mensagem de erro, com o caminho do registro, em vez de encerrar o chat. A conexão é sempre fechada. Se uma restauração mover o arquivo mas não conseguir atualizar o registro, a mensagem informa que o arquivo foi restaurado.
+
+## Testes
+- 43 testes automatizados passando.
+- Novos testes: caminho relativo usado a partir de outra pasta; reinstalação com sucesso, com falha e após execução interrompida; registro corrompido; fechamento da conexão; falha ao atualizar o registro após restaurar. Os 6 testes de regressão falham com o código da 0.3.1.
+
+## Limitações conhecidas
+- Testes com modelo GGUF real e Lixeira nativa do macOS ainda dependem de validação em máquina real.
+- Possível, não verificado: sem Acesso Total ao Disco para o Terminal, o macOS pode bloquear a leitura de `~/.Trash`, o que afetaria a conferência após enviar à Lixeira e a restauração.
+- Comandos livres (`run`) não são sandboxados (por design, com aprovação explícita).
+- Sem verificação de hash da dependência `python-docx` no instalador.
+
+## Verificação
+- `python -m unittest discover -s tests` → 43/43 OK (Python 3.12, macOS).
+- Instalador executado de verdade com uma pasta pessoal temporária: instalação, reinstalação e reinstalação sem acesso ao PyPI. Na última, a atualização foi interrompida e o ambiente anterior continuou com `python-docx`.
+
+---
+
 # Cambuca 0.3.1 — Notas de release
 
 ## Novidades e correções
