@@ -30,6 +30,6 @@ Criação aceita blocos `title`, `heading` (níveis 1–3), `paragraph` e `table
 
 ## Instalação e manutenção
 
-O instalador cria um venv sob `~/.local/share/cambuca/venv`, instala python-docx 1.2.0, atualiza os cinco módulos e cria `~/Documents/Cambuca/conhecimento`. A seleção de GGUF e o journal são preservados. A instalação necessita internet; inferência e documentos não. Requisitos: Python >=3.10, llama-server para chat, macOS para Lixeira real. Testes usam backend de Lixeira injetável para rodar em Linux.
+O instalador cria um venv sob `~/.local/share/cambuca/venv`, instala python-docx 1.2.0, atualiza os cinco módulos e cria `~/Documents/Cambuca/conhecimento`. Se `~/Documents/Cambuca` ainda não existir, copia antes os exemplos de `exemplos/`; em reinstalações não copia nada, para não recriar o que o usuário apagou. A seleção de GGUF e o journal são preservados. A instalação necessita internet; inferência e documentos não. Requisitos: Python >=3.10, llama-server para chat, macOS para Lixeira real. Testes usam backend de Lixeira injetável para rodar em Linux.
 
 Os testes de instalação simulam venv/pip. Os testes do adaptador macOS simulam a chamada a osascript. Testes de Word usam python-docx real. Não há teste de inferência com GGUF real nesta entrega.

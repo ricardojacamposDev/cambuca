@@ -52,7 +52,12 @@ for filename in ['.zshrc', '.bash_profile']:
         with profile.open('a') as f:
             f.write('\n# Cambuca: aplicativos locais do usuário\n' + line + '\n')
 # Pasta visível no Finder para o prompt pessoal (prompt.md) e o conhecimento (.md/.txt).
-(Path.home()/'Documents'/'Cambuca'/'conhecimento').mkdir(parents=True, exist_ok=True)
+# Na primeira instalação, ela já vem com os exemplos; depois disso, nada é copiado,
+# para que um exemplo apagado pelo usuário não volte na próxima atualização.
+personal = Path.home()/'Documents'/'Cambuca'
+if not personal.exists():
+    shutil.copytree(source/'exemplos', personal)
+(personal/'conhecimento').mkdir(parents=True, exist_ok=True)
 print('Cambuca instalado. Abra uma nova aba do Terminal e digite: cambuca')
 print('Prompt pessoal e conhecimento: ~/Documents/Cambuca (prompt.md e pasta conhecimento com .md/.txt)')
 if not shutil.which('llama-server'):

@@ -59,7 +59,21 @@ class LauncherTests(unittest.TestCase):
                 runpy.run_path(str(Path(__file__).resolve().parents[1]/'instalar.py'))
             self.assertEqual((Path(d)/'.zshrc').read_text().count('export PATH='),1)
             self.assertTrue(os.access(Path(d)/'.local/bin/cambuca',os.X_OK))
-            self.assertTrue((Path(d)/'Documents/Cambuca/conhecimento').is_dir())
+            self.assertTrue((Path(d)/'Documents/Cambuca/prompt.md').is_file())
+            self.assertTrue((Path(d)/'Documents/Cambuca/conhecimento/guia-cambuca.md').is_file())
+    def test_examples_only_on_first_install(self):
+        with tempfile.TemporaryDirectory() as d:
+            personal=Path(d)/'Documents/Cambuca'
+            self.run_installer(Path(d))
+            (personal/'prompt.md').unlink();(personal/'conhecimento/minha.md').write_text('minha nota')
+            self.run_installer(Path(d))
+            self.assertFalse((personal/'prompt.md').exists())
+            self.assertEqual((personal/'conhecimento/minha.md').read_text(),'minha nota')
+    def test_example_prompt_fits_smallest_context(self):
+        import rag
+        examples=Path(__file__).resolve().parents[1]/'exemplos'
+        text,warning=rag.load_prompt(examples/'prompt.md',launcher.history_chars(4096)//4)
+        self.assertTrue(text);self.assertEqual(warning,'')
     def run_installer(self,home,**patches):
         with patch.object(Path,'home',return_value=home), patch('venv.EnvBuilder.create',side_effect=lambda env:Path(env).mkdir(parents=True)), patch('subprocess.run',**patches):
             runpy.run_path(str(Path(__file__).resolve().parents[1]/'instalar.py'))
