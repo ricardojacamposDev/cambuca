@@ -16,12 +16,28 @@ bin_dir = Path.home()/'.local'/'bin'
 destination.mkdir(parents=True, exist_ok=True)
 bin_dir.mkdir(parents=True, exist_ok=True)
 environment = destination/'venv'
-# Reinstalação segura: remove ambiente anterior para evitar falha ao recriar.
+previous = destination/'venv.anterior'
+discard = destination/'venv.descartar'
+# Reinstalação segura: o ambiente que já funciona fica guardado até o novo
+# estar completo. Uma falha, ou uma execução anterior interrompida, o restaura.
+if previous.exists():
+    shutil.rmtree(environment, ignore_errors=True)
+    previous.rename(environment)
+shutil.rmtree(discard, ignore_errors=True)
 if environment.exists():
-    shutil.rmtree(environment)
-venv.EnvBuilder(with_pip=True).create(environment)
+    environment.rename(previous)
 python = environment/'bin'/'python'
-subprocess.run([str(python), '-m', 'pip', 'install', '--disable-pip-version-check', 'python-docx==1.2.0'], check=True)
+try:
+    venv.EnvBuilder(with_pip=True).create(environment)
+    subprocess.run([str(python), '-m', 'pip', 'install', '--disable-pip-version-check', 'python-docx==1.2.0'], check=True)
+except BaseException:
+    shutil.rmtree(environment, ignore_errors=True)
+    if previous.exists():
+        previous.rename(environment)
+    raise
+if previous.exists():
+    previous.rename(discard)
+    shutil.rmtree(discard, ignore_errors=True)
 for name in ['campos.py', 'launcher.py', 'filetools.py', 'wordtools.py']:
     if (source/name).resolve() != (destination/name).resolve():
         shutil.copy2(source/name, destination/name)

@@ -79,3 +79,23 @@ class FileTests(unittest.TestCase):
         item=json.loads(self.tools.execute({'action':'trash_list'}))[0]['id']
         (self.trash/'file.txt').write_text('tampered')
         with self.assertRaises(ValueError):self.tools.execute({'action':'restore','id':item})
+    def test_corrupt_state_reported_and_file_kept(self):
+        (self.root/'state.sqlite').write_bytes(b'nao e sqlite'*100)
+        for a in [{'action':'trash_list'},{'action':'trash','path':'file.txt'},{'action':'restore','id':'x'}]:
+            with self.assertRaisesRegex(ValueError,'Registro da Lixeira'):self.tools.execute(a)
+        self.assertEqual(self.p.read_text(),'original')
+    def test_state_connection_closed_on_error(self):
+        import sqlite3
+        from unittest.mock import MagicMock
+        conn=MagicMock();conn.execute.side_effect=sqlite3.DatabaseError('file is not a database')
+        with patch('filetools.sqlite3.connect',return_value=conn):
+            with self.assertRaises(ValueError):self.tools.execute({'action':'trash_list'})
+        conn.close.assert_called_once()
+    def test_restore_reports_record_failure_after_move(self):
+        import json
+        self.tools.execute({'action':'trash','path':'file.txt'})
+        item=json.loads(self.tools.execute({'action':'trash_list'}))[0]['id']
+        def approval(_):(self.root/'state.sqlite').write_bytes(b'nao e sqlite'*100);return True
+        self.ws.approve=approval
+        with self.assertRaisesRegex(ValueError,'Arquivo restaurado'):self.tools.execute({'action':'restore','id':item})
+        self.assertEqual(self.p.read_text(),'original')

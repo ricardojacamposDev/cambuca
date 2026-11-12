@@ -23,7 +23,7 @@ cd ~/Downloads/cambuca
 python3 instalar.py
 ```
 
-O instalador cria um ambiente virtual privado, instala `python-docx==1.2.0` e suas dependências, copia os módulos e atualiza o comando. Essa etapa requer internet. Não usa sudo. Preserva a escolha do modelo e os registros de Lixeira existentes. Uma falha na instalação de dependências interrompe a atualização e precisa ser corrigida antes do uso.
+O instalador cria um ambiente virtual privado, instala `python-docx==1.2.0` e suas dependências, copia os módulos e atualiza o comando. Essa etapa requer internet. Não usa sudo. Preserva a escolha do modelo e os registros de Lixeira existentes. Se a instalação de dependências falhar (por exemplo, sem internet), a atualização é interrompida e a instalação anterior, se houver, continua funcionando.
 
 Abra uma nova aba do Terminal e entre na pasta desejada:
 
@@ -128,7 +128,7 @@ As operações de mover e restaurar fazem cópia verificada antes de remover a o
 
 ## Validação
 
-36 testes automatizados passaram (Linux e macOS com Python 3.10+): núcleo do agente, inicializador, instalador simulado, Word, movimentação, recusa, conflitos, Lixeira simulada e restauração. Um DOCX de teste criado e editado pelo módulo foi renderizado e inspecionado visualmente.
+43 testes automatizados passaram (Linux e macOS com Python 3.10+): núcleo do agente, inicializador, instalador simulado, Word, movimentação, recusa, conflitos, Lixeira simulada e restauração. Um DOCX de teste criado e editado pelo módulo foi renderizado e inspecionado visualmente.
 
 **Ainda não validado em Mac real:** API nativa de Lixeira, permissões de discos externos, execução GGUF e Metal. Os testes do adaptador macOS verificam o comando e seus argumentos com resposta simulada, não substituem a validação nativa. O instalador de dependências foi testado com instalação simulada; não foi executado no seu Mac.
 

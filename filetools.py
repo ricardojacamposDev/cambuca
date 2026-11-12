@@ -1,4 +1,5 @@
 """Operações em arquivos regulares com confirmação e Lixeira nativa do macOS."""
+import contextlib
 import hashlib
 import json
 import os
@@ -76,14 +77,24 @@ class FileTools:
         self.state = Path(state) if state else Path.home()/'.local/share/cambuca/trash.sqlite3'
         self.trash_backend = trash_backend
 
+    @contextlib.contextmanager
     def db(self):
+        # Confirma ou desfaz e sempre fecha a conexão. Erros do SQLite (registro
+        # bloqueado ou corrompido) viram ValueError para não derrubar a sessão.
         self.state.parent.mkdir(parents=True, exist_ok=True)
         if not self.state.exists():
             fd = os.open(self.state, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
             os.close(fd)
-        db = sqlite3.connect(self.state)
-        db.execute('CREATE TABLE IF NOT EXISTS items (id TEXT PRIMARY KEY, root TEXT, original TEXT, trashed TEXT, digest TEXT, status TEXT)')
-        return db
+        try:
+            db = sqlite3.connect(self.state)
+            try:
+                db.execute('CREATE TABLE IF NOT EXISTS items (id TEXT PRIMARY KEY, root TEXT, original TEXT, trashed TEXT, digest TEXT, status TEXT)')
+                with db:
+                    yield db
+            finally:
+                db.close()
+        except sqlite3.Error as exc:
+            raise ValueError(f'Registro da Lixeira indisponível ({self.state}): {exc}') from exc
 
     def file(self, name):
         # Rejeita links mesmo quando apontam para dentro do workspace.
@@ -99,12 +110,9 @@ class FileTools:
         from campos import display
         action = a['action']
         if action == 'trash_list':
-            db = self.db()
-            try:
+            with self.db() as db:
                 rows = db.execute('SELECT id,original,status FROM items WHERE root=? AND status != ? ORDER BY rowid DESC LIMIT 100',
                                   (str(self.ws.root),'restored')).fetchall()
-            finally:
-                db.close()
             return json.dumps([{'id':r[0],'path':r[1],'status':r[2]} for r in rows],ensure_ascii=False)
         if self.ws.readonly:
             return 'Recusado: modo somente leitura.'
@@ -135,21 +143,13 @@ class FileTools:
             if self.file(a['path']) != src or fingerprint(src) != digest:
                 raise ValueError('Arquivo mudou; operação cancelada.')
             item = uuid.uuid4().hex
-            db = self.db()
-            try:
+            with self.db() as db:
                 db.execute('INSERT INTO items VALUES (?,?,?,?,?,?)',
                            (item,str(self.ws.root),str(src),'',digest,'pending'))
-                db.commit()
-            finally:
-                db.close()
             try:
                 trashed = self.trash_backend(src)
-                db = self.db()
-                try:
+                with self.db() as db:
                     db.execute('UPDATE items SET trashed=?,status=? WHERE id=?',(str(trashed),'trashed',item))
-                    db.commit()
-                finally:
-                    db.close()
                 if src.exists() or fingerprint(trashed) != digest:
                     raise ValueError('Resultado da Lixeira precisa de revisão manual.')
             except Exception as exc:
@@ -158,12 +158,9 @@ class FileTools:
             return f'Enviado à Lixeira. ID de recuperação: {item}. Use /restore {item}.'
         if action == 'restore':
             item = a['id']
-            db = self.db()
-            try:
+            with self.db() as db:
                 row = db.execute('SELECT original,trashed,digest,status FROM items WHERE id=? AND root=?',
                                  (item,str(self.ws.root))).fetchone()
-            finally:
-                db.close()
             if not row or row[3] != 'trashed':
                 raise ValueError('ID não recuperável neste workspace. Consulte /trash e o Finder.')
             dst = self.ws.path(row[0]); src = Path(row[1])
@@ -179,11 +176,10 @@ class FileTools:
             if self.ws.path(row[0]) != dst:
                 raise ValueError('Destino mudou; operação cancelada.')
             move_no_replace(src,dst,row[2])
-            db = self.db()
             try:
-                db.execute('UPDATE items SET status=? WHERE id=?',('restored',item))
-                db.commit()
-            finally:
-                db.close()
+                with self.db() as db:
+                    db.execute('UPDATE items SET status=? WHERE id=?',('restored',item))
+            except ValueError as exc:
+                raise ValueError(f'Arquivo restaurado em {dst.relative_to(self.ws.root)}, mas o registro não foi atualizado. {exc}') from exc
             return f'Restaurado: {dst.relative_to(self.ws.root)}'
         raise ValueError('Operação desconhecida.')

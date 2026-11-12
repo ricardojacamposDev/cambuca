@@ -15,6 +15,18 @@ class LauncherTests(unittest.TestCase):
             self.assertEqual(launcher.get_model(str(model),config=config),model)
             with patch('builtins.input',side_effect=AssertionError('não deve perguntar')):
                 self.assertEqual(launcher.get_model(config=config),model)
+    def test_relative_model_works_from_other_folder(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);(root/'models').mkdir();(root/'proj').mkdir()
+            model=root/'models'/'m.gguf';model.write_bytes(b'GGUFtest');config=root/'config.json'
+            cwd=os.getcwd()
+            try:
+                os.chdir(root/'models');launcher.get_model('m.gguf',config=config)
+                os.chdir(root/'proj')
+                self.assertTrue(Path(json.loads(config.read_text())['model']).is_absolute())
+                self.assertTrue(launcher.get_model(config=config).samefile(model))
+            finally:
+                os.chdir(cwd)
     def test_invalid_model_does_not_save(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);p=root/'bad.gguf';p.write_bytes(b'bad')
@@ -33,3 +45,27 @@ class LauncherTests(unittest.TestCase):
                 runpy.run_path(str(Path(__file__).resolve().parents[1]/'instalar.py'))
             self.assertEqual((Path(d)/'.zshrc').read_text().count('export PATH='),1)
             self.assertTrue(os.access(Path(d)/'.local/bin/cambuca',os.X_OK))
+    def run_installer(self,home,**patches):
+        with patch.object(Path,'home',return_value=home), patch('venv.EnvBuilder.create',side_effect=lambda env:Path(env).mkdir(parents=True)), patch('subprocess.run',**patches):
+            runpy.run_path(str(Path(__file__).resolve().parents[1]/'instalar.py'))
+    def test_reinstall_replaces_venv(self):
+        with tempfile.TemporaryDirectory() as d:
+            share=Path(d)/'.local/share/cambuca';(share/'venv').mkdir(parents=True);(share/'venv/antigo').touch()
+            self.run_installer(Path(d))
+            self.assertTrue((share/'venv').is_dir());self.assertFalse((share/'venv/antigo').exists())
+            self.assertFalse((share/'venv.anterior').exists());self.assertFalse((share/'venv.descartar').exists())
+    def test_failed_reinstall_keeps_working_venv(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as d:
+            share=Path(d)/'.local/share/cambuca';(share/'venv').mkdir(parents=True);(share/'venv/antigo').touch()
+            with self.assertRaises(subprocess.CalledProcessError):
+                self.run_installer(Path(d),side_effect=subprocess.CalledProcessError(1,'pip'))
+            self.assertTrue((share/'venv/antigo').exists());self.assertFalse((share/'venv.anterior').exists())
+    def test_interrupted_reinstall_restores_previous_venv(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as d:
+            share=Path(d)/'.local/share/cambuca';(share/'venv').mkdir(parents=True);(share/'venv.anterior').mkdir()
+            (share/'venv/parcial').touch();(share/'venv.anterior/antigo').touch()
+            with self.assertRaises(subprocess.CalledProcessError):
+                self.run_installer(Path(d),side_effect=subprocess.CalledProcessError(1,'pip'))
+            self.assertTrue((share/'venv/antigo').exists());self.assertFalse((share/'venv/parcial').exists())

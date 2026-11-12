@@ -17,10 +17,11 @@ import campos
 CONFIG = Path.home() / '.config' / 'cambuca' / 'config.json'
 
 def validate_model(value):
-    # Normaliza sem resolver links simbólicos: mantém o caminho informado pelo
-    # usuário (importante no macOS, onde /var aponta para /private/var) e ainda
-    # bloqueia travessia por '..'.
-    p = Path(os.path.normpath(Path(value).expanduser()))
+    # Caminho absoluto, para o config valer a partir de qualquer pasta. Não
+    # resolve links nem reduz '..' como texto: mantém o caminho informado pelo
+    # usuário (no macOS, /var aponta para /private/var) e abre o mesmo arquivo
+    # que o sistema abriria.
+    p = Path(value).expanduser().absolute()
     if not p.is_file():
         raise ValueError('O arquivo não existe ou não é um arquivo regular.')
     with p.open('rb') as f:

@@ -297,7 +297,7 @@ def serve(args):
     binary = shutil.which('llama-server')
     if not binary:
         raise ValueError('Instale o motor: brew install llama.cpp')
-    model = Path(os.path.normpath(Path(args.model).expanduser()))
+    model = Path(args.model).expanduser().absolute()
     if not model.is_file():
         raise ValueError('O arquivo não existe ou não é um arquivo regular.')
     with model.open('rb') as f:
