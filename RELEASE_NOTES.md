@@ -1,3 +1,26 @@
+# Cambuca 0.3.4 — Notas de release
+
+## Correções
+- Fechar a aba do Terminal, ou encerrar o Cambuca com `kill`, agora também encerra o motor `llama-server`. Antes, o launcher morria com o `SIGHUP` ou `SIGTERM` sem executar a limpeza, e o motor continuava rodando sozinho com o modelo na memória (cerca de 5 GB com o modelo de teste). Um comando aprovado no chat que estiver em execução também é encerrado.
+
+## Testes
+- 45 testes automatizados passando.
+- Novo teste: `test_hangup_stops_server`. Com o launcher da 0.3.3, o próprio processo de teste morre pelo `SIGHUP`.
+
+## Limitações conhecidas
+- Se o launcher for morto com `kill -9` (`SIGKILL`), o motor ainda fica órfão: esse sinal não pode ser tratado.
+- Contextos maiores usam mais memória no llama-server. O máximo prático depende do modelo e da memória do Mac.
+- Testes da Lixeira nativa do macOS ainda dependem de validação em máquina real.
+- Possível, não verificado: sem Acesso Total ao Disco para o Terminal, o macOS pode bloquear a leitura de `~/.Trash`, o que afetaria a conferência após enviar à Lixeira e a restauração.
+- Comandos livres (`run`) não são sandboxados (por design, com aprovação explícita).
+- Sem verificação de hash da dependência `python-docx` no instalador.
+
+## Verificação
+- `python -m unittest discover -s tests` → 45/45 OK (Python 3.12, macOS).
+- Com o modelo GGUF real, chat aberto e `SIGHUP` enviado ao launcher: na 0.3.3, o `llama-server` ficou órfão; na 0.3.4, ele registrou `cleaning up before exit...` e encerrou, e o launcher saiu com código 129.
+
+---
+
 # Cambuca 0.3.3 — Notas de release
 
 ## Novidades
