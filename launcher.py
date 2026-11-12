@@ -29,6 +29,12 @@ def validate_model(value):
             raise ValueError('O arquivo não possui assinatura GGUF.')
     return p
 
+def history_chars(context):
+    # O histórico acompanha o contexto: desconta os tokens reservados à resposta
+    # e conta ~2,9 caracteres por token, a proporção usada até a 0.3.2
+    # (4096 → 6000, 8192 → 18000).
+    return (context - campos.REPLY_TOKENS) * 375 // 128
+
 def get_model(selected=None, configure=False, config=CONFIG):
     if selected:
         model = validate_model(selected)
@@ -128,7 +134,7 @@ def main():
             original = sys.argv
             try:
                 sys.argv = ['cambuca','chat','--workspace',str(root),'--port',str(port),
-                            '--history-chars',str(6000 if args.context < 8192 else 18000)]
+                            '--history-chars',str(history_chars(args.context))]
                 if args.read_only:
                     sys.argv.append('--read-only')
                 return campos.main()

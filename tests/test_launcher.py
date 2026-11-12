@@ -27,6 +27,8 @@ class LauncherTests(unittest.TestCase):
                 self.assertTrue(launcher.get_model(config=config).samefile(model))
             finally:
                 os.chdir(cwd)
+    def test_history_follows_context(self):
+        self.assertEqual([launcher.history_chars(c) for c in (4096,8192,32768)],[6000,18000,90000])
     def test_invalid_model_does_not_save(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);p=root/'bad.gguf';p.write_bytes(b'bad')

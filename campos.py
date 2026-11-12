@@ -22,6 +22,7 @@ import filetools
 import wordtools
 
 LIMIT = 24000
+REPLY_TOKENS = 2048
 SKIP = {'.git', '.venv', 'venv', 'node_modules', '__pycache__', '.campos'}
 SYSTEM = '''Você é Cambuca, um assistente de programação local. Responda em português.
 Use uma única resposta JSON por turno, sem markdown externo, no formato:
@@ -265,11 +266,11 @@ def turn(messages, prompt, ws, port, max_steps=12, context_chars=18000):
     messages.append({'role':'user','content':prompt})
     for _ in range(max_steps):
         if sum(len(m['content']) for m in messages) > context_chars:
-            display('Limite preventivo de histórico atingido. Use /clear ou aumente --history-chars. Nenhuma ação adicional foi executada.')
+            display('Limite preventivo de histórico atingido. Use /clear ou abra o cambuca com --context maior. Nenhuma ação adicional foi executada.')
             return
         result = request(port, '/v1/chat/completions', {
             'model':'local', 'messages':messages, 'temperature':0.2,
-            'max_tokens':2048, 'stream':False, 'response_format':{'type':'json_object'}})
+            'max_tokens':REPLY_TOKENS, 'stream':False, 'response_format':{'type':'json_object'}})
         choice = result['choices'][0]
         raw = choice['message'].get('content') or ''
         messages.append({'role':'assistant','content':raw})

@@ -116,7 +116,7 @@ cambuca --gpu-layers 0
 cambuca --doctor
 ```
 
-Somente leitura bloqueia todas as mutações, inclusive restauração e comandos livres. O padrão é contexto 8192; com 4096 o histórico é reduzido. `/clear` limpa o histórico e `/exit` fecha o chat e o servidor.
+Somente leitura bloqueia todas as mutações, inclusive restauração e comandos livres. O padrão é contexto 8192. O histórico da conversa acompanha o contexto: cerca de 6.000 caracteres com 4096, 18.000 com 8192 e 90.000 com 32768. Contextos maiores usam mais memória. `/clear` limpa o histórico e `/exit` fecha o chat e o servidor.
 
 ## Segurança e dados locais
 
@@ -128,7 +128,7 @@ As operações de mover e restaurar fazem cópia verificada antes de remover a o
 
 ## Validação
 
-43 testes automatizados passaram (Linux e macOS com Python 3.10+): núcleo do agente, inicializador, instalador simulado, Word, movimentação, recusa, conflitos, Lixeira simulada e restauração. Um DOCX de teste criado e editado pelo módulo foi renderizado e inspecionado visualmente.
+44 testes automatizados passaram (Linux e macOS com Python 3.10+): núcleo do agente, inicializador, instalador simulado, Word, movimentação, recusa, conflitos, Lixeira simulada e restauração. Um DOCX de teste criado e editado pelo módulo foi renderizado e inspecionado visualmente.
 
 **Ainda não validado em Mac real:** API nativa de Lixeira, permissões de discos externos, execução GGUF e Metal. Os testes do adaptador macOS verificam o comando e seus argumentos com resposta simulada, não substituem a validação nativa. O instalador de dependências foi testado com instalação simulada; não foi executado no seu Mac.
 
