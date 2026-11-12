@@ -40,6 +40,18 @@ class LauncherTests(unittest.TestCase):
             with patch('sys.argv',['cambuca','--workspace',d]), patch.object(Path,'home',return_value=root), patch.object(launcher.shutil,'which',return_value='/fake/server'), patch.object(launcher,'get_model',return_value=root/'test.gguf'), patch.object(launcher.subprocess,'Popen',return_value=proc), patch.object(launcher,'ready',return_value=True), patch.object(launcher.campos,'main',return_value=0), patch.object(launcher,'stop') as stop:
                 self.assertEqual(launcher.main(),0)
                 stop.assert_called_once_with(proc)
+    def test_hangup_stops_server(self):
+        import signal
+        for signum in (signal.SIGHUP, signal.SIGTERM):
+            self.addCleanup(signal.signal, signum, signal.getsignal(signum))
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);proc=MagicMock();proc.poll.return_value=None;done=[]
+            def hangup():os.kill(os.getpid(),signal.SIGHUP)
+            def stop(_):os.kill(os.getpid(),signal.SIGHUP);done.append(True)  # segundo SIGHUP não interrompe a limpeza
+            with patch('sys.argv',['cambuca','--workspace',d]), patch.object(Path,'home',return_value=root), patch.object(launcher.shutil,'which',return_value='/fake/server'), patch.object(launcher,'get_model',return_value=root/'test.gguf'), patch.object(launcher.subprocess,'Popen',return_value=proc), patch.object(launcher,'ready',return_value=True), patch.object(launcher.campos,'main',side_effect=hangup), patch.object(launcher,'stop',side_effect=stop) as stopped:
+                with self.assertRaises(SystemExit) as cm:launcher.main()
+            self.assertEqual(cm.exception.code,128+signal.SIGHUP)
+            stopped.assert_called_once_with(proc);self.assertEqual(done,[True])
     def test_installer_idempotent(self):
         with tempfile.TemporaryDirectory() as d:
             with patch.object(Path,'home',return_value=Path(d)), patch('venv.EnvBuilder.create'), patch('subprocess.run'):

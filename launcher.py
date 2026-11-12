@@ -71,6 +71,14 @@ def stop(proc):
             os.killpg(proc.pid, signal.SIGKILL)
             proc.wait()
 
+def hangup(signum, frame):
+    # Aba fechada (SIGHUP) ou kill (SIGTERM): sai pelo finally de main, que
+    # encerra o motor; ele roda em outra sessão e não recebe o sinal. Sinais
+    # repetidos são ignorados para não interromper essa limpeza.
+    signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    raise SystemExit(128 + signum)
+
 def ready(port):
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), campos.NoRedirect())
     try:
@@ -91,6 +99,8 @@ def main():
     parser.add_argument('--trash-list', action='store_true', help='Lista a Lixeira do workspace sem carregar modelo')
     parser.add_argument('--restore', metavar='ID', help='Restaura arquivo sem carregar modelo')
     args = parser.parse_args()
+    signal.signal(signal.SIGHUP, hangup)
+    signal.signal(signal.SIGTERM, hangup)
     proc = None
     try:
         if args.trash_list or args.restore:
