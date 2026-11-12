@@ -1,3 +1,25 @@
+# Cambuca 0.3.3 — Notas de release
+
+## Novidades
+- O histórico da conversa acompanha o tamanho do contexto (`--context`). Antes, ficava fixo em 18.000 caracteres a partir de 8192 tokens. Agora cresce na mesma proporção: 90.000 caracteres com 32768, por exemplo. Com 4096 e 8192 os valores não mudam (6.000 e 18.000).
+- Quando o histórico enche, o aviso sugere abrir o `cambuca` com `--context` maior, a opção disponível no comando, em vez de `--history-chars`.
+
+## Testes
+- 44 testes automatizados passando.
+- Novo teste: `test_history_follows_context`.
+
+## Limitações conhecidas
+- Contextos maiores usam mais memória no llama-server. O máximo prático depende do modelo e da memória do Mac.
+- Testes com modelo GGUF real e Lixeira nativa do macOS ainda dependem de validação em máquina real.
+- Possível, não verificado: sem Acesso Total ao Disco para o Terminal, o macOS pode bloquear a leitura de `~/.Trash`, o que afetaria a conferência após enviar à Lixeira e a restauração.
+- Comandos livres (`run`) não são sandboxados (por design, com aprovação explícita).
+- Sem verificação de hash da dependência `python-docx` no instalador.
+
+## Verificação
+- `python -m unittest discover -s tests` → 44/44 OK (Python 3.12, macOS).
+
+---
+
 # Cambuca 0.3.2 — Notas de release
 
 ## Correções
