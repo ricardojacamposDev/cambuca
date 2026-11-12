@@ -1,3 +1,28 @@
+# Cambuca 0.4.1 — Notas de release
+
+## Novidades
+- A primeira instalação já traz exemplos em `~/Documents/Cambuca`: um `prompt.md` e um guia rápido do Cambuca em `conhecimento/guia-cambuca.md`. Cada seção do guia tem uma linha de palavras-chave com sinônimos, que ajuda a busca por palavras. As mesmas cópias estão em `exemplos/` no repositório.
+- Atualizações não copiam os exemplos, para que um arquivo apagado não volte. Quem instalou a 0.4.0 já tem a pasta e pode copiar os exemplos de `exemplos/`, se quiser.
+
+## Testes
+- 55 testes automatizados passando.
+- Novos testes: exemplos copiados só na primeira instalação, sem recriar arquivos apagados nem mexer nos do usuário; `prompt.md` de exemplo dentro do limite do menor contexto (4096 tokens).
+
+## Limitações conhecidas
+- A busca não entende sinônimos: a pergunta precisa usar palavras que aparecem nos documentos.
+- Limites da pasta de conhecimento: 5 MB por arquivo, 5.000 arquivos e 50 MB no total, em UTF-8 ou Windows-1252.
+- Se o launcher for morto com `kill -9` (`SIGKILL`), o motor ainda fica órfão.
+- Testes da Lixeira nativa do macOS ainda dependem de validação em máquina real.
+- Possível, não verificado: sem Acesso Total ao Disco para o Terminal, o macOS pode bloquear a leitura de `~/.Trash`.
+- Comandos livres (`run`) não são sandboxados (por design, com aprovação explícita).
+- Sem verificação de hash da dependência `python-docx` no instalador.
+
+## Verificação
+- `python -m unittest discover -s tests` → 55/55 OK (Python 3.12, macOS).
+- Instalador executado de verdade com uma pasta pessoal temporária: a instalação nova criou `prompt.md` e `conhecimento/guia-cambuca.md`, e o `--doctor` mostrou o prompt ativo e 1 arquivo de conhecimento. Depois de apagar o `prompt.md`, a reinstalação não o recriou.
+
+---
+
 # Cambuca 0.4.0 — Notas de release
 
 ## Novidades
