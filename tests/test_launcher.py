@@ -59,6 +59,7 @@ class LauncherTests(unittest.TestCase):
                 runpy.run_path(str(Path(__file__).resolve().parents[1]/'instalar.py'))
             self.assertEqual((Path(d)/'.zshrc').read_text().count('export PATH='),1)
             self.assertTrue(os.access(Path(d)/'.local/bin/cambuca',os.X_OK))
+            self.assertTrue((Path(d)/'Documents/Cambuca/conhecimento').is_dir())
     def run_installer(self,home,**patches):
         with patch.object(Path,'home',return_value=home), patch('venv.EnvBuilder.create',side_effect=lambda env:Path(env).mkdir(parents=True)), patch('subprocess.run',**patches):
             runpy.run_path(str(Path(__file__).resolve().parents[1]/'instalar.py'))

@@ -13,4 +13,4 @@ dependencies = ["python-docx==1.2.0"]
 cambuca = "launcher:main"
 
 [tool.setuptools]
-py-modules = ["campos", "launcher", "filetools", "wordtools"]
+py-modules = ["campos", "launcher", "filetools", "wordtools", "rag"]

@@ -38,7 +38,7 @@ except BaseException:
 if previous.exists():
     previous.rename(discard)
     shutil.rmtree(discard, ignore_errors=True)
-for name in ['campos.py', 'launcher.py', 'filetools.py', 'wordtools.py']:
+for name in ['campos.py', 'launcher.py', 'filetools.py', 'wordtools.py', 'rag.py']:
     if (source/name).resolve() != (destination/name).resolve():
         shutil.copy2(source/name, destination/name)
 launcher = bin_dir/'cambuca'
@@ -51,6 +51,9 @@ for filename in ['.zshrc', '.bash_profile']:
     if line not in text:
         with profile.open('a') as f:
             f.write('\n# Cambuca: aplicativos locais do usuário\n' + line + '\n')
+# Pasta visível no Finder para o prompt pessoal (prompt.md) e o conhecimento (.md/.txt).
+(Path.home()/'Documents'/'Cambuca'/'conhecimento').mkdir(parents=True, exist_ok=True)
 print('Cambuca instalado. Abra uma nova aba do Terminal e digite: cambuca')
+print('Prompt pessoal e conhecimento: ~/Documents/Cambuca (prompt.md e pasta conhecimento com .md/.txt)')
 if not shutil.which('llama-server'):
     print('Antes do primeiro uso, instale o motor: brew install python llama.cpp')

@@ -80,6 +80,18 @@ class WorkspaceTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join()
+    def test_knowledge_sent_only_for_current_turn(self):
+        import rag
+        folder=self.root/'conhecimento';folder.mkdir()
+        (folder/'ferias.md').write_text('Cada pessoa tem 30 dias de férias por ano.')
+        response={'choices':[{'message':{'content':'{"action":"final","text":"30 dias"}'},'finish_reason':'stop'}]}
+        history=[{'role':'system','content':campos.SYSTEM}]
+        sent=[]
+        def fake(port,route,body):sent.append(body['messages'][1]['content']);return response
+        with patch.object(campos,'request',side_effect=fake):
+            campos.turn(history,'quantos dias de férias?',self.ws,8080,knowledge=rag.Knowledge(folder))
+        self.assertIn('30 dias de férias',sent[0]);self.assertIn('[ferias.md, linha 1]',sent[0])
+        self.assertEqual(history[1]['content'],'quantos dias de férias?')
     def test_truncated_action_is_not_executed(self):
         response = {'choices':[{'message':{'content':'{"action":"write","path":"bad","content":"x"}'},'finish_reason':'length'}]}
         with patch.object(campos,'request',return_value=response):

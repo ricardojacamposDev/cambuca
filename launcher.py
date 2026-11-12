@@ -13,6 +13,7 @@ import sys
 import time
 import urllib.request
 import campos
+import rag
 
 CONFIG = Path.home() / '.config' / 'cambuca' / 'config.json'
 
@@ -110,7 +111,11 @@ def main():
             return 0
         binary = shutil.which('llama-server')
         if args.doctor:
-            campos.display(f'Cambuca 0.3.4\nPython {platform.python_version()}\nllama-server: {binary or "não encontrado"}\nConfiguração: {CONFIG}')
+            folder = rag.base()
+            found, skipped = rag.scan(folder/'conhecimento')
+            campos.display(f'Cambuca 0.3.4\nPython {platform.python_version()}\nllama-server: {binary or "não encontrado"}\nConfiguração: {CONFIG}\n'
+                           f'Prompt pessoal: {folder/"prompt.md"} ({"ativo" if (folder/"prompt.md").is_file() else "ausente"})\n'
+                           f'Conhecimento: {folder/"conhecimento"} ({len(found)} arquivo(s) .md/.txt' + (f', {skipped} ignorado(s)' if skipped else '') + ')')
             return 0
         if not binary:
             raise ValueError('Instale primeiro: brew install python llama.cpp')

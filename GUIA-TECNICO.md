@@ -1,10 +1,18 @@
 # Arquitetura Cambuca 0.3
 
-`launcher.py` inicia o modelo via llama-server e abre o chat na mesma aba. As opções `--trash-list` e `--restore` dispensam o motor de IA. `campos.py` mantém o ciclo JSON e o executor de ferramentas; `wordtools.py` manipula documentos via python-docx e `filetools.py` faz operações de arquivos e recuperação.
+`launcher.py` inicia o modelo via llama-server e abre o chat na mesma aba. As opções `--trash-list` e `--restore` dispensam o motor de IA. `campos.py` mantém o ciclo JSON e o executor de ferramentas; `wordtools.py` manipula documentos via python-docx, `filetools.py` faz operações de arquivos e recuperação, e `rag.py` cuida do prompt pessoal e da pasta de conhecimento.
 
 ## Protocolo
 
 Cada resposta do modelo é um único objeto JSON. Ações disponíveis: `final`, `list`, `read`, `search`, `write`, `run`, `rename`, `move`, `trash`, `trash_list`, `restore`, `word_read`, `word_create`, `word_append`, `word_replace`. O prompt em `campos.py` contém os esquemas e exemplos. Respostas truncadas não são executadas; há limite de 12 etapas e orçamento preventivo por caracteres. Não há streaming nem tool calling nativo por família de modelo.
+
+## Prompt pessoal e conhecimento
+
+`~/Documents/Cambuca/prompt.md` é acrescentado ao prompt interno, nunca o substitui, porque o prompt interno define o protocolo. Acima de um quarto de `--history-chars`, é ignorado com aviso.
+
+`~/Documents/Cambuca/conhecimento/` é indexado em uma tabela SQLite FTS5 em memória (`unicode61 remove_diacritics 2`), em blocos de cerca de 1.200 caracteres. Títulos Markdown abrem bloco novo, e a continuação de uma seção repete o título. A cada pergunta, só os arquivos com mtime ou tamanho diferentes são relidos. A consulta usa as palavras da pergunta sem acentos e sem palavras comuns, como prefixos de até 6 letras ligados por OR, ordenados por `bm25()`. Trechos com menos de 40% da pontuação do melhor são descartados, e o total cabe em um quarto de `--history-chars`.
+
+Os trechos são anexados à mensagem do usuário só durante o turno; ao final, o histórico volta a guardar apenas a pergunta. Isso evita acumular trechos e preserva o início da conversa no cache de prompt do llama-server. O prompt interno pede que os trechos sejam tratados como dados, não instruções.
 
 ## Lixeira
 
@@ -22,6 +30,6 @@ Criação aceita blocos `title`, `heading` (níveis 1–3), `paragraph` e `table
 
 ## Instalação e manutenção
 
-O instalador cria um venv sob `~/.local/share/cambuca/venv`, instala python-docx 1.2.0 e atualiza os quatro módulos. A seleção de GGUF e o journal são preservados. A instalação necessita internet; inferência e documentos não. Requisitos: Python >=3.10, llama-server para chat, macOS para Lixeira real. Testes usam backend de Lixeira injetável para rodar em Linux.
+O instalador cria um venv sob `~/.local/share/cambuca/venv`, instala python-docx 1.2.0, atualiza os cinco módulos e cria `~/Documents/Cambuca/conhecimento`. A seleção de GGUF e o journal são preservados. A instalação necessita internet; inferência e documentos não. Requisitos: Python >=3.10, llama-server para chat, macOS para Lixeira real. Testes usam backend de Lixeira injetável para rodar em Linux.
 
 Os testes de instalação simulam venv/pip. Os testes do adaptador macOS simulam a chamada a osascript. Testes de Word usam python-docx real. Não há teste de inferência com GGUF real nesta entrega.

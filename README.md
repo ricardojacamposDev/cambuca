@@ -63,6 +63,15 @@ Substitua `ID` pelo identificador exibido em `/trash`. A pasta de destino precis
 
 `/delete` envia o arquivo à **Lixeira do macOS**, sem exclusão permanente. Não há fallback para `rm`. A Lixeira precisa estar acessível e a operação pode ser recusada pelo sistema, especialmente em volumes externos.
 
+## Prompt pessoal e pasta de conhecimento
+
+O instalador cria `~/Documents/Cambuca`. O que estiver nela vale para qualquer projeto:
+
+- `prompt.md`: suas instruções, somadas às instruções internas do Cambuca. As internas definem as ferramentas e não podem ser substituídas. Exemplo: “Responda de forma breve e cite a fonte.” O limite é um quarto do histórico: 4.500 caracteres com o contexto padrão.
+- `conhecimento/`: arquivos `.md` e `.txt`, inclusive em subpastas. A cada pergunta, o Cambuca busca os trechos mais relevantes e os anexa só àquela pergunta, sem acumular no histórico. O chat mostra os arquivos usados, por exemplo `Conhecimento: contratos/modelo.md`.
+
+A busca é por palavras (BM25 no SQLite), ignora acentos e aproxima flexões: “restaurar” encontra “restauração”. Ela não entende sinônimos, então use na pergunta as palavras que aparecem nos documentos. Arquivos novos ou alterados entram na pergunta seguinte, sem reiniciar. Arquivos e pastas ocultos são ignorados, e links simbólicos são seguidos. Limites: 5 MB por arquivo, 5.000 arquivos e 50 MB no total, em UTF-8 ou Windows-1252. Os trechos usam até um quarto do histórico por pergunta. `cambuca --doctor` mostra se o prompt está ativo e quantos arquivos foram encontrados.
+
 ## Recuperar sem carregar o modelo
 
 Na mesma pasta de trabalho usada para a exclusão:
@@ -122,13 +131,13 @@ Somente leitura bloqueia todas as mutações, inclusive restauração e comandos
 
 As ferramentas próprias são limitadas ao workspace; exigem confirmação e verificam mudanças concorrentes comuns. Isso não constitui sandbox contra processos maliciosos ou condições de corrida deliberadas. Comandos livres aprovados continuam com as permissões do usuário, inclusive fora do workspace e na rede. Prefira as ferramentas próprias para exclusões recuperáveis.
 
-O instalador usa `~/.local/share/cambuca` e `~/.local/bin/cambuca`, e acrescenta PATH em `.zshrc` e `.bash_profile`. A configuração do modelo está em `~/.config/cambuca/config.json`. O registro de Lixeira está em `~/.local/share/cambuca/trash.sqlite3`; ele contém caminhos e hashes, não cópias dos arquivos. Logs do motor ficam em `~/.local/state/cambuca`. Conversas não são persistidas.
+O instalador usa `~/.local/share/cambuca` e `~/.local/bin/cambuca`, e acrescenta PATH em `.zshrc` e `.bash_profile`. A configuração do modelo está em `~/.config/cambuca/config.json`. O registro de Lixeira está em `~/.local/share/cambuca/trash.sqlite3`; ele contém caminhos e hashes, não cópias dos arquivos. Logs do motor ficam em `~/.local/state/cambuca`. Conversas não são persistidas. O índice da pasta de conhecimento fica só na memória durante a sessão.
 
 As operações de mover e restaurar fazem cópia verificada antes de remover a origem, podendo exigir espaço adicional. Se o volume não permitir publicação segura sem sobrescrita, a operação falha preservando a origem. Não oferecemos garantia de preservação de todos os metadados específicos de provedores de nuvem/volumes.
 
 ## Validação
 
-45 testes automatizados passaram (Linux e macOS com Python 3.10+): núcleo do agente, inicializador, instalador simulado, Word, movimentação, recusa, conflitos, Lixeira simulada e restauração. Um DOCX de teste criado e editado pelo módulo foi renderizado e inspecionado visualmente.
+53 testes automatizados passaram (Linux e macOS com Python 3.10+): núcleo do agente, inicializador, instalador simulado, Word, movimentação, recusa, conflitos, Lixeira simulada, restauração e pasta de conhecimento. Um DOCX de teste criado e editado pelo módulo foi renderizado e inspecionado visualmente.
 
 **Ainda não validado em Mac real:** API nativa de Lixeira, permissões de discos externos, execução GGUF e Metal. Os testes do adaptador macOS verificam o comando e seus argumentos com resposta simulada, não substituem a validação nativa. O instalador de dependências foi testado com instalação simulada; não foi executado no seu Mac.
 
