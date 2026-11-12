@@ -113,7 +113,7 @@ def main():
         if args.doctor:
             folder = rag.base()
             found, skipped = rag.scan(folder/'conhecimento')
-            campos.display(f'Cambuca 0.3.4\nPython {platform.python_version()}\nllama-server: {binary or "não encontrado"}\nConfiguração: {CONFIG}\n'
+            campos.display(f'Cambuca 0.4.0\nPython {platform.python_version()}\nllama-server: {binary or "não encontrado"}\nConfiguração: {CONFIG}\n'
                            f'Prompt pessoal: {folder/"prompt.md"} ({"ativo" if (folder/"prompt.md").is_file() else "ausente"})\n'
                            f'Conhecimento: {folder/"conhecimento"} ({len(found)} arquivo(s) .md/.txt' + (f', {skipped} ignorado(s)' if skipped else '') + ')')
             return 0

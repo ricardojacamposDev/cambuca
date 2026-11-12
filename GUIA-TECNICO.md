@@ -1,4 +1,4 @@
-# Arquitetura Cambuca 0.3
+# Arquitetura Cambuca 0.4
 
 `launcher.py` inicia o modelo via llama-server e abre o chat na mesma aba. As opções `--trash-list` e `--restore` dispensam o motor de IA. `campos.py` mantém o ciclo JSON e o executor de ferramentas; `wordtools.py` manipula documentos via python-docx, `filetools.py` faz operações de arquivos e recuperação, e `rag.py` cuida do prompt pessoal e da pasta de conhecimento.
 
