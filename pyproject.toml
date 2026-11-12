@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cambuca"
-version = "0.3.2"
+version = "0.3.3"
 description = "Assistente de programação local com GGUF e llama.cpp"
 requires-python = ">=3.10"
 dependencies = ["python-docx==1.2.0"]

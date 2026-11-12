@@ -1,4 +1,4 @@
-# Cambuca 0.3.2 — Word e arquivos com recuperação
+# Cambuca 0.3.3 — Word e arquivos com recuperação
 
 Digite `cambuca` na pasta de trabalho para conversar com seu modelo GGUF local. Esta versão acrescenta suporte a Word (.docx) e operações próprias de renomear, mover, enviar à Lixeira e restaurar arquivos.
 
