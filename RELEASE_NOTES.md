@@ -1,3 +1,31 @@
+# Cambuca 0.4.0 — Notas de release
+
+## Novidades
+- **Prompt pessoal:** `~/Documents/Cambuca/prompt.md` complementa as instruções internas do Cambuca e vale para qualquer projeto. As instruções internas, que definem as ferramentas, continuam valendo. O limite é um quarto do histórico (4.500 caracteres com o contexto padrão); acima disso, o arquivo é ignorado e o chat avisa.
+- **Pasta de conhecimento:** arquivos `.md` e `.txt` em `~/Documents/Cambuca/conhecimento/`, inclusive em subpastas. A cada pergunta, o Cambuca busca os trechos mais relevantes e os anexa só àquela pergunta, sem acumular no histórico. O chat mostra os arquivos usados.
+- A busca é por palavras (BM25 no SQLite FTS5, em memória), ignora acentos e aproxima flexões. Arquivos novos ou alterados entram na pergunta seguinte, sem reiniciar.
+- A abertura do chat e o `cambuca --doctor` mostram o estado do prompt pessoal e quantos arquivos de conhecimento foram encontrados.
+- O instalador cria `~/Documents/Cambuca/conhecimento`.
+
+## Testes
+- 53 testes automatizados passando.
+- Novos testes: divisão em blocos, busca sem acentos e com flexões, atualização de arquivos novos, alterados e removidos, filtros e limites, links em ciclo, orçamento de trechos, leitura do prompt e trechos válidos só no turno atual.
+
+## Limitações conhecidas
+- A busca não entende sinônimos: a pergunta precisa usar palavras que aparecem nos documentos.
+- Limites da pasta de conhecimento: 5 MB por arquivo, 5.000 arquivos e 50 MB no total, em UTF-8 ou Windows-1252.
+- Se o launcher for morto com `kill -9` (`SIGKILL`), o motor ainda fica órfão.
+- Testes da Lixeira nativa do macOS ainda dependem de validação em máquina real.
+- Possível, não verificado: sem Acesso Total ao Disco para o Terminal, o macOS pode bloquear a leitura de `~/.Trash`.
+- Comandos livres (`run`) não são sandboxados (por design, com aprovação explícita).
+- Sem verificação de hash da dependência `python-docx` no instalador.
+
+## Verificação
+- `python -m unittest discover -s tests` → 53/53 OK (Python 3.12, macOS).
+- Com o modelo GGUF real e uma pasta pessoal temporária: o `prompt.md` pedia para terminar as respostas com uma palavra de controle, e a pasta de conhecimento tinha um documento com o código de um cofre e outro sem relação. À pergunta sobre o código, o Cambuca usou só o documento certo, citou o arquivo, respondeu o código correto e terminou com a palavra de controle.
+
+---
+
 # Cambuca 0.3.4 — Notas de release
 
 ## Correções
